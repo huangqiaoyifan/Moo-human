@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f3ef">
+  <title>艺术赏析文本评审</title>
+  <link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="#top" aria-label="艺术赏析文本评审首页"><span class="mark">评</span><span>艺术赏析文本评审</span></a>
+    <div class="reviewer-field">
+      <label for="reviewer-id">评审者姓名</label>
+      <input id="reviewer-id" maxlength="40" autocomplete="name" placeholder="输入姓名">
+      <span id="save-state" class="save-state">尚未保存</span>
+    </div>
+    <div class="toolbar">
+      <button id="rubric-button" class="button button-light" type="button">评分标准</button>
+      <button id="export-button" class="button button-dark" type="button" disabled>保存 / 导出</button>
+      <button id="import-button" class="icon-button" type="button" title="导入 Excel 或 JSON 留档" aria-label="导入 Excel 或 JSON 留档">↥</button>
+      <input id="import-file" type="file" accept=".xlsx,.json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/json" hidden>
+    </div>
+  </header>
+
+  <main id="top" class="layout">
+    <aside class="side-panel">
+      <div class="eyebrow">人工评审 · 试点</div>
+      <h1>艺术赏析<br>文本评审</h1>
+      <p class="intro">请结合原图、参考寓意与五级评分标准，独立评价每段文本。</p>
+      <div class="progress-block">
+        <div class="progress-heading"><span>完成进度</span><strong id="progress-count">0 / 400</strong></div>
+        <div class="progress-track"><span id="progress-bar"></span></div>
+        <div class="progress-sub"><span id="image-progress">图片 1 / 50</span><span id="percent-progress">0%</span></div>
+      </div>
+      <div class="image-picker-wrap">
+        <label for="image-picker">图片编号</label>
+        <select id="image-picker"></select>
+      </div>
+      <div class="nav-buttons">
+        <button id="previous-button" class="button button-light" type="button">← 上一张</button>
+        <button id="next-button" class="button button-light" type="button">下一张 →</button>
+      </div>
+      <p class="privacy-note">进度保存在当前浏览器。完成后请导出结果文件并交给研究团队。</p>
+      <div class="site-footer">MOO 艺术赏析生成研究 · 2026</div>
+    </aside>
+
+    <section class="review-area" aria-live="polite">
+      <div id="loading" class="loading">正在载入评审材料…</div>
+      <div id="review-content" class="review-content" hidden>
+        <section class="image-band" aria-label="原图与寓意参考">
+          <div class="artwork-frame"><img id="artwork" alt="待评审作品原图"><span id="image-error" class="image-error" hidden>图片载入失败</span></div>
+          <div class="image-meta">
+            <div class="image-meta-line"><span id="image-label">IMAGE_0001</span><span id="concept-count"></span></div>
+            <div class="meaning-label">参考文化寓意</div>
+            <h2 id="meaning"></h2>
+            <p id="motifs" class="motifs"></p>
+          </div>
+        </section>
+        <section class="rating-column">
+          <div class="list-heading">
+            <div><div class="eyebrow">文本盲评</div><h2>赏析文本</h2></div>
+            <span id="image-completion" class="image-completion">本图 0 / 8</span>
+          </div>
+          <div id="cards" class="text-list"></div>
+          <div class="bottom-nav">
+            <button id="previous-bottom" class="button button-light" type="button">← 上一张</button>
+            <button id="next-bottom" class="button button-dark" type="button">下一张 →</button>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="rubric-dialog" class="rubric-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow">评分参考</div><h2>四项评分标准</h2></div><button id="close-rubric" class="icon-button" type="button" aria-label="关闭">×</button></div>
+    <p class="rubric-note">每项均按 1–5 分独立评分。分数越高，表现越好；如介于两个锚点之间，选择更接近的一档。</p>
+    <div id="rubric-content" class="rubric-content"></div>
+  </dialog>
+  <dialog id="export-dialog" class="export-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow">评审进度留档</div><h2>保存或导出评分</h2></div><button id="close-export" class="icon-button" type="button" aria-label="关闭">×</button></div>
+    <p>可随时下载 Excel 留档，未完成的评分会保留为空白。之后通过右上角导入按钮重新载入该文件继续评审。CSV 用于最终汇总，JSON 可作为备用恢复文件。</p>
+    <div class="download-actions"><button id="download-xlsx" class="button button-dark" type="button">下载 Excel 留档</button><button id="download-csv" class="button button-light" type="button">下载 CSV</button><button id="download-json" class="button button-light" type="button">下载 JSON</button></div>
+  </dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="vendor/jszip.min.js"></script>
+  <script src="app.js?v=7"></script>
+</body>
+</html>
