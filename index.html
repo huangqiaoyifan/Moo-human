@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4f3ef">
   <title>艺术赏析文本评审</title>
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
   <header class="topbar">
@@ -49,7 +49,7 @@
       <div id="loading" class="loading">正在载入评审材料…</div>
       <div id="review-content" class="review-content" hidden>
         <section class="image-band" aria-label="原图与寓意参考">
-          <div class="artwork-frame"><img id="artwork" alt="待评审作品原图"><span id="image-error" class="image-error" hidden>图片载入失败</span></div>
+          <button id="open-image" class="artwork-frame" type="button" title="放大查看完整原图" aria-label="放大查看完整原图"><img id="artwork" alt="待评审作品原图"><span id="image-error" class="image-error" hidden>图片载入失败</span></button>
           <div class="image-meta">
             <div class="image-meta-line"><span id="image-label">IMAGE_0001</span><span id="concept-count"></span></div>
             <div class="meaning-label">参考文化寓意</div>
@@ -77,6 +77,10 @@
     <p class="rubric-note">每项均按 1–5 分独立评分。分数越高，表现越好；如介于两个锚点之间，选择更接近的一档。</p>
     <div id="rubric-content" class="rubric-content"></div>
   </dialog>
+  <dialog id="image-dialog" class="image-dialog" aria-label="完整作品原图">
+    <button id="close-image" class="icon-button image-dialog-close" type="button" title="关闭原图" aria-label="关闭原图">×</button>
+    <img id="image-full" alt="完整作品原图">
+  </dialog>
   <dialog id="export-dialog" class="export-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">评审进度留档</div><h2>保存或导出评分</h2></div><button id="close-export" class="icon-button" type="button" aria-label="关闭">×</button></div>
     <p>可随时下载 Excel 留档，未完成的评分会保留为空白。之后通过右上角导入按钮重新载入该文件继续评审。CSV 用于最终汇总，JSON 可作为备用恢复文件。</p>
@@ -84,6 +88,7 @@
   </dialog>
   <div id="toast" class="toast" role="status"></div>
   <script src="vendor/jszip.min.js"></script>
-  <script src="app.js?v=7"></script>
+  <script src="data/review_data.js?v=1"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

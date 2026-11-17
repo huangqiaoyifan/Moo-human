@@ -94,6 +94,8 @@ function render() {
   $("#artwork").onload = () => { $("#image-error").hidden = true; };
   $("#artwork").src = image.image;
   $("#artwork").alt = `作品原图 ${image.image_id}`;
+  $("#image-full").src = image.image;
+  $("#image-full").alt = `完整作品原图 ${image.image_id}`;
   $("#image-label").textContent = image.image_id;
   $("#concept-count").textContent = `关键事实概念 ${image.key_fact_count}`;
   $("#meaning").textContent = image.theme || "未提供寓意文字";
@@ -355,15 +357,11 @@ async function importFile(file) {
   else throw new Error("请选择网站导出的 .xlsx 或 .json 留档文件");
 }
 
-async function init() {
+function init() {
   renderRubrics();
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    const response = await fetch(new URL("data/review_data.json", document.baseURI), { signal: controller.signal });
-    clearTimeout(timeout);
-    if (!response.ok) throw new Error("评审数据载入失败");
-    state.dataset = await response.json();
+    if (!window.REVIEW_DATA) throw new Error("缺少评审数据文件 data/review_data.js");
+    state.dataset = window.REVIEW_DATA;
     if (state.dataset.images.length !== 50 || state.dataset.images.some((image) => image.cards.length !== 8)) throw new Error("评审数据完整性检查失败");
     $("#reviewer-id").addEventListener("change", loadReviewer);
     $("#reviewer-id").addEventListener("keydown", (event) => { if (event.key === "Enter") loadReviewer(); });
@@ -377,6 +375,8 @@ async function init() {
     $("#download-csv").addEventListener("click", exportCsv);
     $("#download-json").addEventListener("click", exportJson);
     $("#rubric-button").addEventListener("click", () => $("#rubric-dialog").showModal());
+    $("#open-image").addEventListener("click", () => $("#image-dialog").showModal());
+    $("#close-image").addEventListener("click", () => $("#image-dialog").close());
     $("#close-rubric").addEventListener("click", () => $("#rubric-dialog").close());
     $("#close-export").addEventListener("click", () => $("#export-dialog").close());
     $("#import-button").addEventListener("click", () => $("#import-file").click());
@@ -392,7 +392,7 @@ async function init() {
     if ($("#reviewer-id").value) loadReviewer(); else { renderImagePicker(); render(); }
     $("#reviewer-id").addEventListener("change", () => sessionStorage.setItem("art-review-last-user", state.reviewer));
   } catch (error) {
-    const message = error.name === "AbortError" ? "评审数据载入超时" : `页面初始化失败：${error.message}`;
+    const message = `页面初始化失败：${error.message}`;
     $("#loading").innerHTML = `${escapeHtml(message)}。请刷新页面重试；若持续出现，请联系研究团队。<br><button id="retry-load" class="button button-light" type="button">重新载入</button>`;
     $("#retry-load").addEventListener("click", () => window.location.reload());
   }
