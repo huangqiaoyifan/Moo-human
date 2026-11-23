@@ -49,7 +49,8 @@ function loadReviewer() {
   if (state.reviewer) {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey()) || "{}");
-      state.answers = saved.answers || {};
+      const allowedIds = new Set(state.dataset.images.flatMap((image) => image.cards.map((card) => card.id)));
+      state.answers = Object.fromEntries(Object.entries(saved.answers || {}).filter(([itemId]) => allowedIds.has(itemId)));
       state.currentImage = Math.min(saved.currentImage || 0, state.dataset.images.length - 1);
       $("#save-state").textContent = "已载入";
       $("#save-state").classList.add("saved");
@@ -228,7 +229,7 @@ function toast(message) {
 function renderRubrics() {
   $("#rubric-content").innerHTML = RUBRICS.map((rubric) => `<section class="rubric-section"><h3>${escapeHtml(rubric.title)}</h3><ol>${rubric.levels.map((level) => `<li>${escapeHtml(level)}</li>`).join("")}</ol></section>`).join("");
 }
-function applyImportedAnswers(reviewer, incomingAnswers, currentImage = 0) {
+function applyImportedAnswers(reviewer, incomingAnswers, currentImage = 0, completionMessage = "") {
   if (state.reviewer && state.reviewer !== reviewer) throw new Error(`此留档属于“${reviewer}”，当前姓名为“${state.reviewer}”。请先切换到对应评审者姓名。`);
   if (state.reviewer && !window.confirm("将从留档恢复评分；文件中已填写的分数和评语会覆盖浏览器内对应项目。是否继续？")) return;
   state.reviewer = reviewer;
@@ -249,7 +250,7 @@ function applyImportedAnswers(reviewer, incomingAnswers, currentImage = 0) {
   state.currentImage = firstIncomplete >= 0 ? firstIncomplete : requestedImage;
   sessionStorage.setItem("art-review-last-user", reviewer);
   save(); renderImagePicker(); render();
-  toast(`已恢复 ${Object.keys(incomingAnswers).length} 条留档记录`);
+  toast(completionMessage || `已恢复 ${Object.keys(incomingAnswers).length} 条留档记录`);
 }
 function restoreJson(file) {
   const reader = new FileReader();
@@ -348,7 +349,16 @@ async function restoreXlsx(file) {
   }
   const expectedIds = new Set(state.dataset.images.flatMap((image) => image.cards.map((card) => card.id)));
   if (!reviewer) throw new Error("工作表中没有评审者姓名，请保留 reviewer_name 列");
-  if (byId.size !== expectedIds.size || Array.from(expectedIds).some((id) => !byId.has(id))) throw new Error(`留档须包含全部 ${expectedIds.size} 个 item_id 行；请不要删除未评分的空白行`);
+  if (byId.size !== expectedIds.size) throw new Error(`留档须包含全部 ${expectedIds.size} 个 item_id 行；请不要删除未评分的空白行`);
+  const compatible = Object.fromEntries(Array.from(byId).filter(([itemId]) => expectedIds.has(itemId)));
+  const obsoleteCount = byId.size - Object.keys(compatible).length;
+  if (obsoleteCount > 0) {
+    if (!Object.keys(compatible).length) throw new Error("该留档的文本编号与当前版本都不匹配，无法恢复评分");
+    const accepted = window.confirm(`此 Excel 有 ${obsoleteCount} 条文本编号属于已更新的旧文本。将恢复 ${Object.keys(compatible).length} 条编号未变的评分，并跳过旧版本文本的评分。是否继续？`);
+    if (!accepted) return;
+    applyImportedAnswers(reviewer, compatible, 0, `已恢复 ${Object.keys(compatible).length} 条评分，跳过 ${obsoleteCount} 条旧文本评分`);
+    return;
+  }
   applyImportedAnswers(reviewer, Object.fromEntries(byId));
 }
 async function importFile(file) {
